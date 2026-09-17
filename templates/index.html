@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ title }} - domain-specific career assistant">
+  <style>
+    :root {
+      --accent: #2563eb;
+      --accent2: #7c3aed;
+      --bg: #f5f7fb;
+      --surface: #fff;
+      --text: #172033;
+      --muted: #667085;
+      --user: #2563eb;
+      --assistant: #eef2ff;
+      --border: rgba(23,32,51,.09);
+      --shadow: 0 18px 50px rgba(31,41,55,.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,.12), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(124,58,237,.12), transparent 28%),
+        var(--bg);
+      color: var(--text);
+    }
+    .app {
+      width: min(1100px, 100%);
+      height: 100dvh;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+    }
+    .shell {
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    header {
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(110deg, rgba(37,99,235,.09), rgba(124,58,237,.08));
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .logo {
+      width: 46px; height: 46px; flex: 0 0 46px;
+      display: grid; place-items: center;
+      color: white; font-size: 22px; font-weight: 800;
+      border-radius: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 25px rgba(37,99,235,.22);
+    }
+    h1 { margin: 0; font-size: clamp(18px, 3vw, 24px); }
+    .domain { margin-top: 3px; color: var(--muted); font-size: 13px; }
+    button {
+      border: 0; cursor: pointer; font: inherit;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    button:active { transform: scale(.97); }
+    .clear {
+      padding: 10px 13px; border-radius: 12px;
+      background: rgba(255,255,255,.85); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    #messages {
+      flex: 1; min-height: 0; overflow-y: auto;
+      padding: 24px clamp(14px, 4vw, 40px);
+      scroll-behavior: smooth;
+    }
+    .row { display: flex; margin: 12px 0; }
+    .row.user { justify-content: flex-end; }
+    .bubble {
+      max-width: min(78%, 720px);
+      padding: 13px 16px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border-radius: 19px;
+    }
+    .assistant .bubble {
+      background: var(--assistant);
+      border-bottom-left-radius: 6px;
+    }
+    .user .bubble {
+      color: white; background: var(--user);
+      border-bottom-right-radius: 6px;
+    }
+    .typing { opacity: .65; font-style: italic; }
+    form {
+      display: flex; gap: 10px; padding: 14px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,.86);
+    }
+    textarea {
+      flex: 1; resize: none; min-height: 48px; max-height: 140px;
+      padding: 13px 15px; border-radius: 15px;
+      border: 1px solid var(--border); outline: none;
+      background: white; color: var(--text); font: inherit;
+    }
+    textarea:focus { border-color: rgba(37,99,235,.45); box-shadow: 0 0 0 4px rgba(37,99,235,.08); }
+    .send {
+      align-self: stretch; min-width: 90px; padding: 0 18px;
+      color: white; border-radius: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      font-weight: 700;
+    }
+    .footer { text-align: center; color: var(--muted); font-size: 11px; padding: 7px 0 2px; }
+    @media (max-width: 600px) {
+      .app { padding: 0; }
+      .shell { border-radius: 0; border-left: 0; border-right: 0; }
+      header { padding: 14px; }
+      .logo { width: 40px; height: 40px; flex-basis: 40px; }
+      .bubble { max-width: 88%; }
+      .send { min-width: 58px; padding: 0 12px; }
+      .send span { display: none; }
+      form { padding: 10px; }
+      .footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <h1>{{ title }}</h1>
+          <div class="domain">{{ domain }}</div>
+        </div>
+      </div>
+      <button class="clear" id="clearBtn" type="button">New chat</button>
+    </header>
+
+    <section id="messages" aria-live="polite"></section>
+
+    <form id="chatForm">
+      <textarea id="message" rows="1" placeholder="Ask a career-related question..." autocomplete="off"></textarea>
+      <button class="send" type="submit"><span>Send</span> ➤</button>
+    </form>
+  </main>
+  <div class="footer">Temporary session chat • Domain: {{ domain }}</div>
+</div>
+
+<script>
+const messages = document.getElementById("messages");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("message");
+const clearBtn = document.getElementById("clearBtn");
+const welcome = {{ welcome|tojson }};
+
+function addMessage(text, who) {
+  const row = document.createElement("div");
+  row.className = "row " + who;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+  return row;
+}
+
+addMessage(welcome, "assistant");
+
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 140) + "px";
+});
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage(message, "user");
+  input.value = "";
+  input.style.height = "auto";
+
+  const typing = addMessage("Thinking...", "assistant");
+  typing.querySelector(".bubble").classList.add("typing");
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message})
+    });
+    const data = await res.json();
+    typing.remove();
+    addMessage(data.answer || data.error || "Something went wrong.", "assistant");
+  } catch (err) {
+    typing.remove();
+    addMessage("Could not connect to the server. Please try again.", "assistant");
+  }
+});
+
+clearBtn.addEventListener("click", async () => {
+  await fetch("/clear", {method: "POST"});
+  messages.innerHTML = "";
+  addMessage(welcome, "assistant");
+  input.focus();
+});
+</script>
+</body>
+</html>
